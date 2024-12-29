@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "http://localhost:4200")
 public class UserController {
 
     private final UserService userService;
@@ -16,19 +17,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    // Inscription de l'utilisateur
     @PostMapping("/register")
     public User registerUser(@RequestBody User user) {
         return userService.registerUser(user);
     }
 
-    // Connexion de l'utilisateur
-    @PostMapping("/login")
-    public String loginUser(@RequestBody User user) {
-        return userService.loginUser(user.getEmail(), user.getPassword());
-    }
-
-    // Récupérer le profil de l'utilisateur
     @GetMapping("/profile")
     public User getUserProfile(@RequestParam Long userId) {
         return userService.getUserProfile(userId);

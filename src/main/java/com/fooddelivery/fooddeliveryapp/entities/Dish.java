@@ -17,6 +17,7 @@ public class Dish {
     Double price;
     String category ;
     String rating;
+    @Column(columnDefinition = "LONGTEXT")  
     String image;
 
 

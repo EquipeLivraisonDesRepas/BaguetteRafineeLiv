@@ -3,11 +3,10 @@ package com.fooddelivery.fooddeliveryapp.services;
 import com.fooddelivery.fooddeliveryapp.entities.User;
 import com.fooddelivery.fooddeliveryapp.repositories.UserRepository;
 import com.fooddelivery.fooddeliveryapp.security.JWTUtil;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,60 +23,65 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User registerUser(User user) {
-        // Vérifie si l'email est déjà utilisé
+        // Vérifier si l'email existe déjà
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use.");
+            throw new UserServiceException("The provided email is already in use.");
         }
 
-        // Hashage du mot de passe
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Attribuer un rôle par défaut si aucun n'est défini
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("USER");
+        }
 
-        // Enregistre l'utilisateur
+        // Utiliser la méthode saveUser pour enregistrer l'utilisateur avec le mot de passe haché
+        saveUser(user);
+
         return userRepository.save(user);
     }
 
     @Override
-    public String loginUser(String email, String password) {
-        // Recherche de l'utilisateur par email
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
-
-        // Vérification du mot de passe
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Invalid email or password.");
-        }
-
-        // Génération du jeton JWT si authentification réussie
-        return jwtUtil.generateToken(user.getEmail());
-    }
-
-    @Override
+    @Transactional
     public User updateUser(Long userId, User updatedUser) {
-        // Récupération de l'utilisateur existant
+        // Récupérer l'utilisateur existant
         User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+                .orElseThrow(() -> new UserServiceException("User not found."));
 
-        // Mise à jour des informations utilisateur
-        if (updatedUser.getName() != null) {
+        // Mettre à jour les champs pertinents
+        if (updatedUser.getName() != null && !updatedUser.getName().isEmpty()) {
             existingUser.setName(updatedUser.getName());
         }
-        if (updatedUser.getEmail() != null) {
+        if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) {
+            if (!existingUser.getEmail().equals(updatedUser.getEmail()) &&
+                    userRepository.existsByEmail(updatedUser.getEmail())) {
+                throw new UserServiceException("The provided email is already in use.");
+            }
             existingUser.setEmail(updatedUser.getEmail());
         }
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+            existingUser.setPassword(updatedUser.getPassword());
+            saveUser(existingUser); // Utilise la méthode saveUser pour le hachage
+        }
+        if (updatedUser.getRole() != null && !updatedUser.getRole().isEmpty()) {
+            existingUser.setRole(updatedUser.getRole());
         }
 
-        // Enregistrement des modifications
+        // Sauvegarder les modifications
         return userRepository.save(existingUser);
     }
 
     @Override
     public User getUserProfile(Long userId) {
-        // Récupération du profil utilisateur
+        // Récupérer et retourner le profil utilisateur
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+                .orElseThrow(() -> new UserServiceException("User not found."));
     }
 
+    public void saveUser(User user) {
+        // Hachage du mot de passe avant de l'enregistrer
+        String hashedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(hashedPassword);
+        userRepository.save(user);
+    }
 }

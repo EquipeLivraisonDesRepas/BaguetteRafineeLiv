@@ -29,10 +29,11 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login").permitAll() // Permet l'accès à l'API de connexion
-                        .anyRequest().authenticated() // Toutes les autres requêtes nécessitent une authentification
+                        .requestMatchers("/users/register", "/users/login", "/api/**").permitAll() // Endpoints publics
+                        .anyRequest().authenticated() // Endpoints protégés
                 )
-                .addFilterBefore(new JWTAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class) // Ajout du filtre JWT
+                .addFilterBefore(new JWTAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
 }

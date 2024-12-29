@@ -22,6 +22,8 @@ public class Order {
     User user ;
     @ManyToMany
     List<Dish> dishes ;
+    @ManyToOne
+    private DeliveryPerson deliveryPerson;
 
 
 

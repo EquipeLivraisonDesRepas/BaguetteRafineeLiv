@@ -2,16 +2,16 @@ package com.fooddelivery.fooddeliveryapp.entities;
 
 public class LoginRequest {
 
-    private String username;
+    private String email;  // Change from username to email
     private String password;
 
     // Getters et Setters
-    public String getUsername() {
-        return username;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {

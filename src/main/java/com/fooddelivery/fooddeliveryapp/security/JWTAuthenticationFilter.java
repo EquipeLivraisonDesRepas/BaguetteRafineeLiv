@@ -1,6 +1,5 @@
 package com.fooddelivery.fooddeliveryapp.security;
 
-
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
@@ -22,8 +21,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = getJWTFromRequest(request);
 
-        if (token != null && jwtUtil.validateToken(token, "user")) { // Vérifiez ici que le token est valide
-            // Authentifier l'utilisateur si le token est valide
+        if (token != null && jwtUtil.validateToken(token, "user")) {
             SecurityContextHolder.getContext().setAuthentication(
                     new UsernamePasswordAuthenticationToken("user", null, null));
         }
@@ -34,7 +32,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     private String getJWTFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Extraire le token JWT
+            return bearerToken.substring(7);
         }
         return null;
     }
